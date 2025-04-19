@@ -224,7 +224,11 @@
                             </div>
                         </div>
                     </div>
-                   
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-danger remove-row" data-row-id="${rowCount}">Remove</button>
+                        </div>
+                    </div>
                 </div>
             `;
 
