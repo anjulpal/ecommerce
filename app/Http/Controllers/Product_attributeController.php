@@ -55,54 +55,55 @@ class Product_attributeController extends Controller
     //     return redirect()->route('admin.product.productlist')->with('success', 'Product deleted successfully!');
     // }
 
-  
-  
-    public function edit(Request $request, $id)
-    {
-        if ($request->input()) {
-            $categories = $request->input('category'); // arrays expected
-            $color_id = $request->input('color');
-            $size_id = $request->input('size');
-    
-            // Get all existing product attributes for this product
-            $existing_attributes = Product_attribute::where('product_id', $id)->get();
-    
-            foreach ($categories as $index => $category) {
-                if (isset($existing_attributes[$index])) {
-                    // Get the correct model instance from the collection
-                    $attribute = $existing_attributes[$index];
-    
-                    $attribute->update([
-                        'category_id' => $category,
-                        'color_id' => $color_id[$index],
-                        'size_id' => $size_id[$index]
-                    ]);
-                } else {
-                    // Create a new record if none exists at this index
+public function edit(Request $request, $id){
+    if ($request->input()) {
+        $categories = $request->input('category'); 
+        $color_id = $request->input('color');
+        $size_id = $request->input('size');
+        $existingAttributes = Product_attribute::where('product_id', $id)->pluck('id')->toArray();
+        if(!empty($categories)){
+            foreach ($categories as $key => $category) {
+                if(isset($existingAttributes[$key])){
+                        Product_attribute::where('id', $existingAttributes[$key])->update([
+                            'category_id' => $category,
+                            'color_id' => $color_id[$key],
+                            'size_id' => $size_id[$key]
+                        ]);
+                }else{
                     Product_attribute::create([
                         'product_id' => $id,
                         'category_id' => $category,
-                        'color_id' => $color_id[$index],
-                        'size_id' => $size_id[$index]
+                        'color_id' => $color_id[$key],
+                        'size_id' => $size_id[$key]
                     ]);
                 }
             }
         }
-    
-        // Prepare data for the view
-        $product = Product::find($id);
-        $product_attribute = Product_attribute::where('product_id', $id)->get();
-        $category = Category::all();
-        $color = Color::all();
-        $size = Size::all();
-    
-        return view('admin.product.create', [
-            'product_attribute' => $product_attribute,
-            'category' => $category,
-            'product' => $product,
-            'color' => $color,
-            'size' => $size,
-        ]);
     }
-    
+    $product = Product::where('id', $id)->first();
+    $product_attribute = Product_attribute::where('product_id', $id)->get();
+    $category = Category::all();
+    $color = Color::all();
+    $size = Size::all();
+    return view('admin.product.create', [
+        'product_attribute' => $product_attribute,
+        'category' => $category,
+        'product' => $product,
+        'color' => $color,
+        'size' => $size,
+    ]);
+}
+
+public function productremove(Request $request){
+    $id = $request->id;
+    $data = Product_attribute::where('id', $id)->first();
+
+    if ($data) {
+        $data->delete();
+        return response()->json(['status' => 'success', 'message' => 'Attribute deleted.']);
+    } else {
+        return response()->json(['status' => 'error', 'message' => 'Attribute not found.'], 404);
+    }
+}
+
 }
